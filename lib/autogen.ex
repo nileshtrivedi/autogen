@@ -1,79 +1,58 @@
-# Class hierarchy from python autogen
-# CoreAgent > LLMAgent > ConversableAgent > UserProxyAgent
-# CoreAgent > LLMAgent > ConversableAgent > AssistantAgent
-
-defmodule CoreAgent do
-  defstruct name: "", description: ""
-
-  def send(%CoreAgent{}, _message, _recipient, _request_reply) do
-    # Send a message to another agent.
-  end
-
-  def receive(%CoreAgent{}, _message, _sender, _request_reply) do
-    # Receive a message from another agent.
-  end
-
-  def generate_reply(%CoreAgent{}, _messages, _sender) do
-    # Generate a reply based on the received messages.
-  end
-
-  def new(name, description) do
-    %CoreAgent{name: name, description: description}
-  end
+defmodule XMessage do
+  defstruct content_type: "", content_body: "", role: "", context: %{}, tools: []
 end
 
-defmodule LLMAgent do
-  defstruct agent: %CoreAgent{}, llm_config: %{}
+defmodule XAgent do
+  # https://microsoft.github.io/autogen/docs/tutorial/introduction
+  # Agents are abstract entities that can send messages, receive messages
+  # and generate a reply using models, tools, human inputs or a mixture of them.
+  # An agent can be powered by LLMs or CodeExecutors, Humans or a combination of these.
+  defstruct name: "", description: "", type: :conversable_agent, config: %{}
 
-  def system_message(%LLMAgent{}) do
+  def send_message(from_agent, to_agent, message, request_reply) do
+    receive_message(from_agent, to_agent, message, request_reply)
   end
 
-  def update_system_message(%LLMAgent{}) do
+  def receive_message(from_agent, to_agent, message, _request_reply) do
+    IO.puts "#{from_agent.name} to #{to_agent.name}: #{message.content_body}"
+    send_message(to_agent, from_agent, generate_reply(to_agent, message), false)
   end
 
-  def name(%LLMAgent{} = agent) do
-    agent.agent.name
+  def generate_reply(%XAgent{type: :conversable_agent} = agent, message) do
+    {:ok, %{choices: [%{"message" => %{"content" => response}}]}} =
+      OpenAI.chat_completion(%{
+        model: "gpt-4o",
+        messages: [
+          %{role: "system", content: agent.description},
+          %{role: "user", content: message.content_body}
+        ]
+      }, %{api_key: System.get_env("OPENAI_API_KEY")})
+    response
   end
 
-  def new(name, description, llm_config) do
-    %LLMAgent{agent: CoreAgent.new(name, description), llm_config: llm_config}
-  end
-end
-
-defmodule ConversableAgent do
-  defstruct llm_agent: %LLMAgent{}
-
-  def name(%ConversableAgent{} = agent) do
-    agent.llm_agent.name
-  end
-
-  def new(name, description, llm_config) do
-    %ConversableAgent{llm_agent: LLMAgent.new(name, description, llm_config)}
-  end
-end
-
-defmodule UserProxyAgent do
-  defstruct conversable_agent: %ConversableAgent{}
-
-  def new(name, description, llm_config) do
-    %UserProxyAgent{conversable_agent: ConversableAgent.new(name, description, llm_config)}
-  end
-end
-
-defmodule AssistantAgent do
-  defstruct conversable_agent: %ConversableAgent{}
-
-  def name(%AssistantAgent{} = agent) do
-    agent.conversable_agent.name
-  end
-
-  def new(name, description, llm_config) do
-    %AssistantAgent{conversable_agent: ConversableAgent.new(name, description, llm_config)}
+  def generate_reply(%XAgent{type: :user_proxy_agent} = _agent, _message) do
+    user_msg = String.trim(IO.gets("Your response: "))
+    %XMessage{content_body: user_msg}
   end
 end
 
 defmodule Autogen do
-  def hello do
-    :world
+  def comedy_show do
+    IO.puts "Starting a comedy show between two conversable agents"
+    joe = %XAgent{name: "Joe", type: :conversable_agent, config: %{}}
+    cathy = %XAgent{name: "Cathy", type: :conversable_agent, config: %{}}
+
+    msg = %XMessage{content_type: "text", content_body: "Cathy, tell me a joke.", role: "sender", context: %{}, tools: []}
+
+    XAgent.send_message(joe, cathy, msg, false)
+  end
+
+  def assistant_demo do
+    IO.puts "Starting assistant demo with the user"
+    assistant = %XAgent{name: "Assistant", description: "You are a helpful chatbot", type: :conversable_agent, config: %{llm: %{}}}
+    user = %XAgent{name: "user", type: :user_proxy_agent, config: %{code_execution_config: false}}
+
+    msg = %XMessage{content_type: "text", content_body: "How can I help you today?", role: "sender", context: %{}, tools: []}
+    XAgent.send_message(assistant, user, msg, false)
   end
 end
