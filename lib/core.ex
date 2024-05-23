@@ -1,5 +1,5 @@
 defmodule LLMRequest do
-  defstruct model: "gpt-4o", messages: [], api_key: System.get_env("OPENAI_API_KEY"), temperature: 1.0
+  defstruct model: "gpt-4o", messages: [], api_key: System.get_env("OPENAI_API_KEY"), temperature: 0.0
 
   def dispatch(request) do
     # IO.puts "calling openai with: #{request.api_key}"
@@ -32,17 +32,25 @@ defmodule XAgent do
   # Agents are abstract entities that can send messages, receive messages
   # and generate a reply using models, tools, human inputs or a mixture of them.
   # An agent can be powered by LLMs or CodeExecutors, Humans or a combination of these.
-  defstruct name: "", system_prompt: "", type: :conversable_agent, llm: %{}
+  defstruct name: "",
+    system_prompt: "",
+    type: :conversable_agent,
+    llm: %{temperature: 0.0},
+    human_input_mode: :terminate,
+    max_consecutive_auto_reply: nil,
+    is_termination_msg: nil,
+    is_code_executor: false
 
   def initiate_chat(opts \\ []) do
     # This wraps the message in XMessage and sends it as XThread
     # Reset the consecutive auto reply counter.
     # If `clear_history` is True, the chat history with the recipient agent will be cleared.
-    validated_opts = Keyword.validate!(opts, [from_agent: nil, to_agent: nil, message: nil, max_turns: nil])
-    from_agent = validated_opts[:from_agent]
-    to_agent = validated_opts[:to_agent]
-    message = validated_opts[:message]
-    max_turns = validated_opts[:max_turns]
+    %{
+      from_agent: from_agent,
+      to_agent: to_agent,
+      message: message,
+      max_turns: max_turns
+    } = Enum.into(opts, %{from_agent: nil, to_agent: nil, message: nil, max_turns: nil})
 
     thread = %XThread{
       max_turns: max_turns,
@@ -69,34 +77,66 @@ defmodule XAgent do
 
   def receive_thread(from_agent, to_agent, thread) do
     message = List.first(thread.chat_history)
-    IO.puts "#{from_agent.name} to #{to_agent.name}: #{message.content}"
+    IO.puts "#{from_agent.name} (to #{to_agent.name}):"
+    IO.puts message.content
+    IO.puts "--------------------------------------------------------------------------------"
 
-    if thread.max_turns != nil and length(thread.chat_history) == 2 * thread.max_turns do
-      IO.puts "\n\n\nMax turns reached. Terminating."
-      IO.puts inspect(thread.chat_history, pretty: true, width: 0)
+    if !(err = should_stop_replying?(thread, message, to_agent)) do
+      reply_str = generate_reply(to_agent, thread, message)
+      reply_msg = %XMessage{content: reply_str, sender: to_agent.name, receiver: from_agent.name}
+      send_thread(to_agent, from_agent, %XThread{thread | chat_history: [reply_msg | thread.chat_history]})
     else
-      if to_agent.type == :conversable_agent do
-        reply_str = generate_reply(to_agent, message)
-        reply_msg = %XMessage{content: reply_str, sender: to_agent.name, receiver: from_agent.name}
-        send_thread(to_agent, from_agent, %XThread{thread | chat_history: [reply_msg | thread.chat_history]})
-      end
+      IO.puts "\n\n#{err}"
     end
   end
 
-  def generate_reply(%XAgent{type: :conversable_agent} = agent, message) do
+  def should_stop_replying?(thread, message, to_agent) do
+    # TODO: Handle max_consecutive_auto_reply
+    cond do
+      thread.max_turns != nil and length(thread.chat_history) == 2 * thread.max_turns -> "Max turns reached"
+      to_agent.type == :conversable_agent and to_agent.is_termination_msg != nil and to_agent.is_termination_msg.(message) -> "is_termination_msg matched"
+      true -> false
+    end
+  end
+
+  def generate_reply(%XAgent{type: :conversable_agent, is_code_executor: false} = agent, thread, _message) do
+    # TODO: Assemble message history correctly for the LLM
+    # Our thread is sorted in reverse chronological order.
+    # And we need to ask the LLM to behave like us (role=assistant), and we will play other agents' role (role=user)
+
+    # So we reverse thread.chat_history and assign roles accordingly.
+    # if message.sender is our name, set role to assistant, else set role to user.
+
+    messages = Enum.reverse(thread.chat_history)
+    |> Enum.map(fn msg -> %{role: (if msg.sender == agent.name, do: "assistant", else: "user"), content: msg.content} end)
+
+    llm_messages = [%{role: "system", content: agent.system_prompt} | messages]
+
+    # IO.puts "Sending to LLM: #{inspect(llm_messages)}"
+
     {:ok, %{choices: [%{"message" => %{"content" => response}}]}} = LLMRequest.dispatch(
       %LLMRequest{
-        messages: [
-          %{role: "system", content: agent.system_prompt},
-          %{role: "user", content: message.content}
-        ],
+        messages: llm_messages,
         temperature: agent.llm.temperature
       }
     )
     response
   end
 
-  def generate_reply(%XAgent{type: :user_proxy_agent} = _agent, _message) do
+  def generate_reply(%XAgent{type: :conversable_agent, is_code_executor: true} = agent, _thread, message) do
+    code = message.content
+    |> String.split("```elixir")
+    |> List.last()
+    |> String.split("```")
+    |> List.first()
+
+    if agent.human_input_mode == :never or XUtils.get_confirmation("Are you sure you want to run this code?") do
+      {result, _binding} = Code.eval_string(code)
+      "Code execution result: " <> inspect(result)
+    end
+  end
+
+  def generate_reply(%XAgent{type: :user_proxy_agent} = _agent, _thread, _message) do
     user_msg = String.trim(IO.gets("Your response: "))
     %XMessage{content: user_msg}
   end
