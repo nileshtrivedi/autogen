@@ -73,4 +73,13 @@ This is highly experimental and not at all ready for use in production.
 ## Installation
 
 This library has not yet been published on Hex. 
-If you have cloned this repo, you can try it with `OPENAI_API_KEY=your_openai_key mix test` which will invoke the demos.
+If you have cloned this repo, you can try the demos by running the following:
+
+```bash
+export OPENAI_API_KEY=your_openai_key
+mix run scripts/demos/code_execution_demo.exs
+
+# Try the other demos
+mix run scripts/demos/assistant_demo.exs
+mix run scripts/demos/comedy_show_demo.exs
+```
