@@ -3,6 +3,23 @@
 This is a work-in-progress Elixir port for Microsoft's agent framework: [Autogen](https://microsoft.github.io/autogen/).
 This is highly experimental and not at all ready for use in production.
 
+The conceptual of architecture of autogen is explained well in [this blog post by Chi Wang](https://microsoft.github.io/autogen/blog/2024/05/24/Agent).
+
+## Near-term Goals
+
+- Make GroupChat and AutoBuild fully working.
+- Integrate with a multi-user + multi-agent chat experience in webapp
+- Build demos in LiveBook
+
+## Longer-term Goals
+
+- Enable alternative LLMs like Ollama, Gemini etc
+- Enable streaming responses
+- Turn agents into Erlang processes
+- Build a comprehensive library of prompts, tools and agents to make common use-cases trivial
+- Handle real-time multi-modal input (images, audio, video, files)
+- Reach capability at par with OpenAI's GPT-4o demos
+
 ## Usage
 
 ### Conversation between a user (on command-line) and a simple LLM assistant:
