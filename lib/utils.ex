@@ -1,15 +1,20 @@
 defmodule XUtils do
-  def get_confirmation(prompt \\ "Are you sure? (yes/no) ") do
-    IO.write(prompt)
-    response = IO.gets("") |> String.trim() |> String.downcase()
-    case response do
-      "yes" -> true
-      "y" -> true
-      "no" -> false
-      "n" -> false
-      _ ->
-        IO.puts("Invalid input. Please enter 'yes' or 'no'.")
-        get_confirmation(prompt)  # Recursively prompt again for valid input
+  def get_confirmation(prompt \\ "Are you sure? (yes/no): ") do
+    do_get_confirmation(prompt)
+  end
+
+  defp do_get_confirmation(prompt) do
+    response = IO.gets(prompt) |> String.trim() |> String.downcase()
+
+    cond do
+      response == "yes" or response == "y" ->
+        true
+
+      response == "no" or response == "n" ->
+        false
+
+      true ->
+        do_get_confirmation("Invalid input. Please enter 'yes' or 'no': ")
     end
   end
 end
