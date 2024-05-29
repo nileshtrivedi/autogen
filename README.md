@@ -7,9 +7,9 @@ The conceptual of architecture of autogen is explained well in [this blog post b
 
 ## Near-term Goals
 
-- Make GroupChat and AutoBuild fully working.
-- Integrate with a multi-user + multi-agent chat experience in webapp
-- Build demos in LiveBook
+- Make [GroupChat](https://microsoft.github.io/autogen/docs/tutorial/conversation-patterns#group-chat) and [AutoBuild](https://microsoft.github.io/autogen/blog/2023/11/26/Agent-AutoBuild/) fully working.
+- Integrate [aichat](https://github.com/nileshtrivedi/aichat) for a multi-user + multi-agent chat experience on web
+- Build demos in [LiveBook](https://livebook.dev/)
 
 ## Longer-term Goals
 
