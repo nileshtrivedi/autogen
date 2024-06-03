@@ -3,13 +3,14 @@
 This is a work-in-progress Elixir port for Microsoft's agent framework: [Autogen](https://microsoft.github.io/autogen/).
 This is highly experimental and not at all ready for use in production.
 
-The conceptual of architecture of autogen is explained well in [this blog post by Chi Wang](https://microsoft.github.io/autogen/blog/2024/05/24/Agent).
+The conceptual architecture of autogen is explained in [this blog post by Chi Wang](https://microsoft.github.io/autogen/blog/2024/05/24/Agent).
 
 ## Near-term Goals
 
 - Make [GroupChat](https://microsoft.github.io/autogen/docs/tutorial/conversation-patterns#group-chat) and [AutoBuild](https://microsoft.github.io/autogen/blog/2023/11/26/Agent-AutoBuild/) fully working.
 - Integrate [aichat](https://github.com/nileshtrivedi/aichat) for a multi-user + multi-agent chat experience on web
 - Build demos in [LiveBook](https://livebook.dev/)
+- Leverage [instructor_ex](https://github.com/thmsmlr/instructor_ex) and [langchain](https://github.com/brainlid/langchain)
 
 ## Longer-term Goals
 
@@ -89,7 +90,14 @@ The conceptual of architecture of autogen is explained well in [this blog post b
 
 ## Installation
 
-This library has not yet been published on Hex. 
+The package can be installed by adding it to your list of dependencies in `mix.exs`:
+
+```
+def deps do
+  [{:autogen, "~> 0.1.0"}]
+end
+```
+
 If you have cloned this repo, you can try the demos by running the following:
 
 ```bash

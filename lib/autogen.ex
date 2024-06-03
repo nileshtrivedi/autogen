@@ -100,7 +100,7 @@ defmodule XAgent do
   end
 
   def generate_reply(%XAgent{type: :conversable_agent, is_code_executor: false} = agent, thread, _message) do
-    # TODO: Assemble message history correctly for the LLM
+    # Assemble message history correctly for the LLM
     # Our thread is sorted in reverse chronological order.
     # And we need to ask the LLM to behave like us (role=assistant), and we will play other agents' role (role=user)
 
