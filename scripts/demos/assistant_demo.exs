@@ -2,8 +2,8 @@ IO.puts("Starting assistant demo with the user on command-line...")
 
 assistant = %XAgent{
   name: "Assistant",
-  system_prompt: "You are a helpful chatbot",
-  type: :conversable_agent
+  system_message: "You are a helpful chatbot",
+  type: :assistant_agent
 }
 
 user = %XAgent{

@@ -3,14 +3,14 @@ IO.puts("Starting code execution demo...")
 code_executor_agent = %XAgent{
   name: "code_executor_agent",
   type: :conversable_agent,
-  is_code_executor: true,
+  code_execution_config: : true,
   human_input_mode: :always,
   is_termination_msg: fn msg -> String.contains?(msg.content, "TERMINATE") end
 }
 
 code_writer_agent = %XAgent{
   name: "code_writer_agent",
-  system_prompt: ~S"""
+  system_message: ~S"""
   You are a helpful AI assistant.
   Solve tasks using your coding and language skills.
   In the following cases, suggest Elixir code (in a elixir coding block) for the user to execute.
