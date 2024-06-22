@@ -102,9 +102,10 @@ If you have cloned this repo, you can try the demos by running the following:
 
 ```bash
 export OPENAI_API_KEY=your_openai_key
-mix run scripts/demos/code_execution_demo.exs
+mix run scripts/demos/basic.exs
 
 # Try the other demos
+mix run scripts/demos/code_execution_demo.exs
 mix run scripts/demos/assistant_demo.exs
 mix run scripts/demos/comedy_show_demo.exs
 ```

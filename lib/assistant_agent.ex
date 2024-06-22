@@ -25,4 +25,19 @@ defmodule Autogen do
       human_input_mode: "NEVER"
     }
   end
+
+  def create_basic_assistant do
+    basic_system_message = "You are a helpful assistant."
+
+    basic_description = "A helpful assistant"
+
+    %XAgent{
+      name: "assistant",
+      type: :assistant_agent,
+      system_message: basic_system_message,
+      description: basic_description,
+      code_execution_config: false,
+      human_input_mode: "NEVER"
+    }
+  end
 end
