@@ -1,4 +1,7 @@
 defmodule XAgent do
+  alias LangChain.Chains.LLMChain
+  alias LangChain.ChatModels.ChatOllamaAI
+  alias LangChain.Message
   # https://microsoft.github.io/autogen/docs/tutorial/introduction
   # Agents are abstract entities that can send messages, receive messages
   # and generate a reply using models, tools, human inputs or a mixture of them.
@@ -18,7 +21,8 @@ defmodule XAgent do
             default_auto_reply: "",
             description: nil,
             chat_messages: nil,
-            model: "gpt-4o"
+            # Langchain chain
+            chain: nil
 
   def initiate_chat(opts \\ []) do
     # This wraps the message in XMessage and sends it as XThread
@@ -34,9 +38,10 @@ defmodule XAgent do
     thread = %XThread{
       max_turns: max_turns,
       chat_history: [
-        %XMessage{
+        %LangChain.Message{
+          role: :assistant,
           content: message,
-          sender: from_agent.name,
+          name: from_agent.name,
           receiver: to_agent.name
         }
       ]
@@ -54,7 +59,7 @@ defmodule XAgent do
     receive_thread(from_agent, to_agent, thread)
   end
 
-  def receive_thread(from_agent, to_agent, thread) do
+  def receive_thread(%XAgent{} = from_agent, %XAgent{} = to_agent, %XThread{} = thread) do
     message = List.first(thread.chat_history)
     IO.puts("#{from_agent.name} (to #{to_agent.name}):")
     IO.puts(message.content)
@@ -62,7 +67,13 @@ defmodule XAgent do
 
     if !(err = should_stop_replying?(thread, message, to_agent)) do
       reply_str = generate_reply(to_agent, thread)
-      reply_msg = %XMessage{content: reply_str, sender: to_agent.name, receiver: from_agent.name}
+
+      reply_msg = %LangChain.Message{
+        content: reply_str,
+        receiver: to_agent.name,
+        name: from_agent.name,
+        role: :user
+      }
 
       send_thread(to_agent, from_agent, %XThread{
         thread
@@ -73,14 +84,19 @@ defmodule XAgent do
     end
   end
 
-  def should_stop_replying?(thread, message, to_agent) do
+  def should_stop_replying?(
+        %XThread{chat_history: chat_history} = thread,
+        %Message{content: content},
+        %XAgent{} = to_agent
+      ) do
     # TODO: Handle max_consecutive_auto_reply
+
     cond do
-      thread.max_turns != nil and length(thread.chat_history) == 2 * thread.max_turns ->
+      thread.max_turns != nil and length(chat_history) == 2 * thread.max_turns ->
         "Max turns reached"
 
       to_agent.type == :conversable_agent and to_agent.is_termination_msg != nil and
-          to_agent.is_termination_msg.(message) ->
+          to_agent.is_termination_msg.(content) ->
         "is_termination_msg matched"
 
       true ->
@@ -101,26 +117,40 @@ defmodule XAgent do
     messages =
       Enum.reverse(thread.chat_history)
       |> Enum.map(fn msg ->
-        %{role: if(msg.sender == agent.name, do: "assistant", else: "user"), content: msg.content}
+        %LangChain.Message{
+          role: if(msg.name == agent.name, do: :assistant, else: :user),
+          content: msg.content,
+          name: agent.name
+        }
       end)
 
-    llm_messages = [%{role: "system", content: agent.system_message} | messages]
+    llm_messages = [
+      %LangChain.Message{
+        role: :system,
+        content: agent.system_message,
+        name: "system",
+        receiver: agent.name
+      }
+      | messages
+    ]
 
-    # IO.puts "Sending to LLM: #{inspect(llm_messages)}"
+    # IO.puts("Sending to LLM: #{inspect(llm_messages)}")
 
-    {:ok, %{choices: [%{"message" => %{"content" => response}}]}} =
-      LLMRequest.dispatch(%LLMRequest{
-        messages: llm_messages,
-        temperature: agent.llm_config.temperature,
-        model: agent.model
-      })
+    {:ok, _updated_chain, response} =
+      %{llm: agent.chain}
+      |> LLMChain.new!()
+      |> LLMChain.add_messages(llm_messages)
+      |> LLMChain.run()
 
-    response
+    # |> IO.inspect()
+
+    # |> IO.inspect()
+    response.content
   end
 
   def generate_reply(agent, thread)
       when (agent.type == :conversable_agent or agent.type == :assistant_agent) and
-             is_map(agent.code_execution_config) do
+             agent.code_execution_config do
     message = List.first(thread.chat_history)
 
     code =

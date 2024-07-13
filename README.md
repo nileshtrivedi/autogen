@@ -57,6 +57,8 @@ The conceptual architecture of autogen is explained in [this blog post by Chi Wa
 With OLLAMA:
 
 ```elixir
+alias LangChain.ChatModels.ChatOllamaAI
+
 joe = %XAgent{
       name: "Joe",
       system_message: "Your name is Joe and you are a part of a duo of comedians.",
@@ -64,8 +66,8 @@ joe = %XAgent{
       llm_config: %{temperature: 0.9},
       human_input_mode: :never,
       max_consecutive_auto_reply: 1,
-      is_termination_msg: fn msg -> String.contains?(String.downcase(msg.content), "bye") end,
-      model: "llama3"
+      is_termination_msg: fn msg -> String.contains?(String.downcase(msg), "bye") end,
+      chain: ChatOllamaAI.new!(%{model: "llama3"})
     }
 
 cathy = %XAgent{
@@ -74,7 +76,7 @@ cathy = %XAgent{
       type: :conversable_agent,
       llm_config: %{temperature: 0.7},
       human_input_mode: :never,
-      model: "llama3"
+      chain: ChatOllamaAI.new!(%{model: "llama3"})
     }
 
 XAgent.initiate_chat(from_agent: joe, to_agent: cathy, message: "Cathy, tell me a joke and then say the words GOOD BYE..", max_turns: 2)
@@ -88,7 +90,8 @@ XAgent.initiate_chat(from_agent: joe, to_agent: cathy, message: "Cathy, tell me 
       type: :conversable_agent,
       is_code_executor: true,
       human_input_mode: :always,
-      is_termination_msg: fn msg -> String.contains?(msg.content, "TERMINATE") end
+      is_termination_msg: fn msg -> String.contains?(msg.content, "TERMINATE") end,
+      chain: ChatOllamaAI.new!(%{model: "llama3"})
     }
 
     code_writer_agent = %XAgent{
@@ -103,7 +106,8 @@ XAgent.initiate_chat(from_agent: joe, to_agent: cathy, message: "Cathy, tell me 
       When you find an answer, verify the answer carefully. Include verifiable evidence in your response if possible.
       If the execution was successful and everything is done, reply with 'TERMINATE'.
       """,
-      type: :conversable_agent
+      type: :conversable_agent,
+      chain: ChatOllamaAI.new!(%{model: "llama3"})
     }
 
     XAgent.initiate_chat(

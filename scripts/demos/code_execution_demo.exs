@@ -1,11 +1,13 @@
+alias LangChain.ChatModels.ChatOllamaAI
 IO.puts("Starting code execution demo...")
 
 code_executor_agent = %XAgent{
   name: "code_executor_agent",
   type: :conversable_agent,
-  code_execution_config: : true,
+  code_execution_config: :true,
   human_input_mode: :always,
-  is_termination_msg: fn msg -> String.contains?(msg.content, "TERMINATE") end
+  is_termination_msg: fn msg -> String.contains?(msg, "TERMINATE") end,
+  chain: ChatOllamaAI.new!(%{model: "codestral"})
 }
 
 code_writer_agent = %XAgent{
@@ -20,7 +22,8 @@ code_writer_agent = %XAgent{
   When you find an answer, verify the answer carefully. Include verifiable evidence in your response if possible.
   If the execution was successful and everything is done, reply with 'TERMINATE'.
   """,
-  type: :conversable_agent
+  type: :conversable_agent,
+  chain: ChatOllamaAI.new!(%{model: "codestral"})
 }
 
 XAgent.initiate_chat(
