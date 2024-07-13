@@ -14,7 +14,7 @@ The conceptual architecture of autogen is explained in [this blog post by Chi Wa
 
 ## Longer-term Goals
 
-- Enable alternative LLMs like Ollama, Gemini etc
+- Enable alternative LLMs like Gemini etc
 - Enable streaming responses
 - Turn agents into Erlang processes
 - Build a comprehensive library of prompts, tools and agents to make common use-cases trivial
@@ -35,9 +35,9 @@ The conceptual architecture of autogen is explained in [this blog post by Chi Wa
 ```elixir
     joe = %XAgent{
       name: "Joe",
-      system_prompt: "Your name is Joe and you are a part of a duo of comedians.",
+      system_message: "Your name is Joe and you are a part of a duo of comedians.",
       type: :conversable_agent,
-      llm: %{temperature: 0.9},
+      llm_config: %{temperature: 0.9},
       human_input_mode: :never,
       max_consecutive_auto_reply: 1,
       is_termination_msg: fn msg -> String.contains?(String.downcase(msg.content), "bye") end
@@ -45,13 +45,39 @@ The conceptual architecture of autogen is explained in [this blog post by Chi Wa
 
     cathy = %XAgent{
       name: "Cathy",
-      system_prompt: "Your name is Cathy and you are a part of a duo of comedians.",
+      system_message: "Your name is Cathy and you are a part of a duo of comedians.",
       type: :conversable_agent,
-      llm: %{temperature: 0.7},
+      llm_config: %{temperature: 0.7},
       human_input_mode: :never
     }
 
     XAgent.initiate_chat(from_agent: joe, to_agent: cathy, message: "Cathy, tell me a joke and then say the words GOOD BYE..", max_turns: 2)
+```
+
+With OLLAMA:
+
+```elixir
+joe = %XAgent{
+      name: "Joe",
+      system_message: "Your name is Joe and you are a part of a duo of comedians.",
+      type: :conversable_agent,
+      llm_config: %{temperature: 0.9},
+      human_input_mode: :never,
+      max_consecutive_auto_reply: 1,
+      is_termination_msg: fn msg -> String.contains?(String.downcase(msg.content), "bye") end,
+      model: "llama3"
+    }
+
+cathy = %XAgent{
+      name: "Cathy",
+      system_message: "Your name is Cathy and you are a part of a duo of comedians.",
+      type: :conversable_agent,
+      llm_config: %{temperature: 0.7},
+      human_input_mode: :never,
+      model: "llama3"
+    }
+
+XAgent.initiate_chat(from_agent: joe, to_agent: cathy, message: "Cathy, tell me a joke and then say the words GOOD BYE..", max_turns: 2)
 ```
 
 ### Code writer agent and Code executor agents collaborating to perform a task:
