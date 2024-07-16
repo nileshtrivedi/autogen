@@ -122,13 +122,16 @@ defmodule Autogen.Agent do
 
   def generate_reply(%Autogen.Agent{} = agent, %Autogen.Thread{} = thread)
     when (agent.type == :conversable_agent or agent.type == :assistant_agent) and is_map(agent.code_execution_config) do
+    ### Code execution
 
-    message = List.first(thread.chat_history)
+    message = List.last(thread.chat_history)
     code = message.content
     |> String.split("```elixir")
     |> List.last()
     |> String.split("```")
     |> List.first()
+
+    IO.puts("Code to execute: #{code}")
 
     if agent.human_input_mode == :never or Autogen.Utils.get_confirmation("Are you sure you want to run this code?") do
       {result, _binding} = Code.eval_string(code)
