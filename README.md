@@ -25,7 +25,7 @@ The conceptual architecture of autogen is explained in [this blog post by Chi Wa
 
 ### Conversation between a user (on command-line) and a simple LLM assistant:
 ```elixir
-    assistant = %Autogen.Agent{name: "Assistant", system_prompt: "You are a helpful chatbot", type: :conversable_agent}
+    assistant = %Autogen.Agent{name: "Assistant", system_message: "You are a helpful chatbot", type: :conversable_agent}
     user = %Autogen.Agent{name: "user", type: :user_proxy_agent}
 
     Autogen.Agent.initiate_chat(from_agent: assistant, to_agent: user, message: "How can I help you today?")
@@ -35,7 +35,7 @@ The conceptual architecture of autogen is explained in [this blog post by Chi Wa
 ```elixir
     joe = %Autogen.Agent{
       name: "Joe",
-      system_prompt: "Your name is Joe and you are a part of a duo of comedians.",
+      system_message: "Your name is Joe and you are a part of a duo of comedians.",
       type: :conversable_agent,
       llm: %{temperature: 0.9},
       human_input_mode: :never,
@@ -45,7 +45,7 @@ The conceptual architecture of autogen is explained in [this blog post by Chi Wa
 
     cathy = %Autogen.Agent{
       name: "Cathy",
-      system_prompt: "Your name is Cathy and you are a part of a duo of comedians.",
+      system_message: "Your name is Cathy and you are a part of a duo of comedians.",
       type: :conversable_agent,
       llm: %{temperature: 0.7},
       human_input_mode: :never
@@ -67,7 +67,7 @@ The conceptual architecture of autogen is explained in [this blog post by Chi Wa
 
     code_writer_agent = %Autogen.Agent{
       name: "code_writer_agent",
-      system_prompt: ~S"""
+      system_message: ~S"""
       You are a helpful AI assistant.
       Solve tasks using your coding and language skills.
       In the following cases, suggest Elixir code (in a elixir coding block) for the user to execute.

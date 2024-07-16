@@ -3,7 +3,7 @@ IO.puts("Starting code execution demo...")
 code_executor_agent = %Autogen.Agent{
   name: "code_executor_agent",
   type: :conversable_agent,
-  code_execution_config: : true,
+  code_execution_config: true,
   human_input_mode: :always,
   is_termination_msg: fn msg -> String.contains?(msg.content, "TERMINATE") end
 }

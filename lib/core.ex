@@ -1,5 +1,5 @@
 defmodule LLMRequest do
-  defstruct model: "gpt-4o", messages: [], api_key: System.get_env("OPENAI_API_KEY"), temperature: 0.0
+  defstruct model: "llama3", messages: [], api_key: System.get_env("OPENAI_API_KEY"), temperature: 0.0
 
   def dispatch(%LLMRequest{model: "gpt-4o"} = request) do
     IO.puts "calling openai with: #{request.api_key}"
@@ -34,6 +34,19 @@ defmodule LLMRequest do
     else
       raise "Error: #{response.status} #{response.body}"
     end
+  end
+
+  def dispatch(%LLMRequest{} = request) do
+    client = Ollama.init()
+
+    response =
+      Ollama.chat(client,
+        model: request.model,
+        messages: request.messages
+      )
+
+    {:ok, result} = response
+    {:ok, %{choices: [result]}}
   end
 
   def build_gemini_request(messages) do

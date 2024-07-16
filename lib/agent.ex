@@ -14,7 +14,8 @@ defmodule Autogen.Agent do
     llm: nil,
     default_auto_reply: "",
     description: nil,
-    chat_messages: nil
+    chat_messages: nil,
+    model: "llama3"
 
 
   def initiate_chat(opts \\ []) do
@@ -93,8 +94,8 @@ defmodule Autogen.Agent do
     {:ok, %{choices: [%{"message" => %{"content" => response}}]}} = LLMRequest.dispatch(
       %LLMRequest{
         messages: llm_messages,
-        temperature: agent.llm_config.temperature
-      }
+      } |> maybe_put(:temperature, safe_get(agent.llm, :temperature))
+      |> maybe_put(:model, agent.model)
     )
     response
   end
@@ -116,4 +117,9 @@ defmodule Autogen.Agent do
   def generate_reply(agent, _thread) when agent.type == :user_proxy_agent do
     String.trim(IO.gets("Your response: "))
   end
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
+  defp safe_get(nil, _key), do: nil
+  defp safe_get(map, key), do: Map.get(map, key)
 end
