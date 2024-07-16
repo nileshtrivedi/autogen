@@ -1,6 +1,7 @@
+# Work in progress. Do not use.
 # See https://microsoft.github.io/autogen/blog/2023/11/26/Agent-AutoBuild/
 
-defmodule AgentBuilder do
+defmodule Autogen.AgentBuilder do
   defstruct builder_model: nil, agent_model: nil, agent_list: [], agent_configs: []
 
   def build_agents(_builder_task, _llm_config, _enable_coding) do
@@ -17,6 +18,6 @@ defmodule AgentBuilder do
 
   def load(_raw_str) do
     # parse the given string or read the file and deserialize
-    %AgentBuilder{}
+    %Autogen.AgentBuilder{}
   end
 end

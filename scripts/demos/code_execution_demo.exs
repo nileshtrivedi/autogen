@@ -1,6 +1,6 @@
 IO.puts("Starting code execution demo...")
 
-code_executor_agent = %XAgent{
+code_executor_agent = %Autogen.Agent{
   name: "code_executor_agent",
   type: :conversable_agent,
   code_execution_config: : true,
@@ -8,7 +8,7 @@ code_executor_agent = %XAgent{
   is_termination_msg: fn msg -> String.contains?(msg.content, "TERMINATE") end
 }
 
-code_writer_agent = %XAgent{
+code_writer_agent = %Autogen.Agent{
   name: "code_writer_agent",
   system_message: ~S"""
   You are a helpful AI assistant.
@@ -23,7 +23,7 @@ code_writer_agent = %XAgent{
   type: :conversable_agent
 }
 
-XAgent.initiate_chat(
+Autogen.Agent.initiate_chat(
   from_agent: code_executor_agent,
   to_agent: code_writer_agent,
   message: "Write Elixir code to calculate the 14th Fibonacci number."

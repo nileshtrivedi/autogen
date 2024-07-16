@@ -1,4 +1,4 @@
-defmodule XGroupChat do
+defmodule Autogen.GroupChat do
   @default_intro_message "Hello everyone. We have assembled a great team today to answer questions and solve tasks. In attendance are:"
   @select_speaker_message_template """
   You are in a role play game. The following roles are available:

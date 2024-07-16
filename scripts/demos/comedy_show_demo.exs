@@ -1,6 +1,6 @@
 IO.puts("Starting a comedy show between two conversable AI agents...")
 
-joe = %XAgent{
+joe = %Autogen.Agent{
   name: "Joe",
   system_message: "Your name is Joe and you are a part of a duo of comedians.",
   type: :conversable_agent,
@@ -10,7 +10,7 @@ joe = %XAgent{
   is_termination_msg: fn msg -> String.contains?(String.downcase(msg.content), "bye") end
 }
 
-cathy = %XAgent{
+cathy = %Autogen.Agent{
   name: "Cathy",
   system_message: "Your name is Cathy and you are a part of a duo of comedians.",
   type: :conversable_agent,
@@ -18,7 +18,7 @@ cathy = %XAgent{
   human_input_mode: "NEVER"
 }
 
-XAgent.initiate_chat(
+Autogen.Agent.initiate_chat(
   from_agent: joe,
   to_agent: cathy,
   message: "Cathy, tell me a joke and then say the words GOOD BYE..",

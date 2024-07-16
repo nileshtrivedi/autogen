@@ -7,14 +7,14 @@ The conceptual architecture of autogen is explained in [this blog post by Chi Wa
 
 ## Near-term Goals
 
+- Switch to [Langchain](https://github.com/brainlid/langchain) for making LLM calls
 - Make [GroupChat](https://microsoft.github.io/autogen/docs/tutorial/conversation-patterns#group-chat) and [AutoBuild](https://microsoft.github.io/autogen/blog/2023/11/26/Agent-AutoBuild/) fully working.
 - Integrate [aichat](https://github.com/nileshtrivedi/aichat) for a multi-user + multi-agent chat experience on web
 - Build demos in [LiveBook](https://livebook.dev/)
-- Leverage [instructor_ex](https://github.com/thmsmlr/instructor_ex) and [langchain](https://github.com/brainlid/langchain)
+- Leverage [instructor_ex](https://github.com/thmsmlr/instructor_ex)
 
 ## Longer-term Goals
 
-- Enable alternative LLMs like Ollama, Gemini etc
 - Enable streaming responses
 - Turn agents into Erlang processes
 - Build a comprehensive library of prompts, tools and agents to make common use-cases trivial
@@ -25,15 +25,15 @@ The conceptual architecture of autogen is explained in [this blog post by Chi Wa
 
 ### Conversation between a user (on command-line) and a simple LLM assistant:
 ```elixir
-    assistant = %XAgent{name: "Assistant", system_prompt: "You are a helpful chatbot", type: :conversable_agent}
-    user = %XAgent{name: "user", type: :user_proxy_agent}
+    assistant = %Autogen.Agent{name: "Assistant", system_prompt: "You are a helpful chatbot", type: :conversable_agent}
+    user = %Autogen.Agent{name: "user", type: :user_proxy_agent}
 
-    XAgent.initiate_chat(from_agent: assistant, to_agent: user, message: "How can I help you today?")
+    Autogen.Agent.initiate_chat(from_agent: assistant, to_agent: user, message: "How can I help you today?")
 ```
 
 ### A back-and-forth conversation between two AI comedians:
 ```elixir
-    joe = %XAgent{
+    joe = %Autogen.Agent{
       name: "Joe",
       system_prompt: "Your name is Joe and you are a part of a duo of comedians.",
       type: :conversable_agent,
@@ -43,7 +43,7 @@ The conceptual architecture of autogen is explained in [this blog post by Chi Wa
       is_termination_msg: fn msg -> String.contains?(String.downcase(msg.content), "bye") end
     }
 
-    cathy = %XAgent{
+    cathy = %Autogen.Agent{
       name: "Cathy",
       system_prompt: "Your name is Cathy and you are a part of a duo of comedians.",
       type: :conversable_agent,
@@ -51,13 +51,13 @@ The conceptual architecture of autogen is explained in [this blog post by Chi Wa
       human_input_mode: :never
     }
 
-    XAgent.initiate_chat(from_agent: joe, to_agent: cathy, message: "Cathy, tell me a joke and then say the words GOOD BYE..", max_turns: 2)
+    Autogen.Agent.initiate_chat(from_agent: joe, to_agent: cathy, message: "Cathy, tell me a joke and then say the words GOOD BYE..", max_turns: 2)
 ```
 
 ### Code writer agent and Code executor agents collaborating to perform a task:
 
 ```elixir
-    code_executor_agent = %XAgent{
+    code_executor_agent = %Autogen.Agent{
       name: "code_executor_agent",
       type: :conversable_agent,
       is_code_executor: true,
@@ -65,7 +65,7 @@ The conceptual architecture of autogen is explained in [this blog post by Chi Wa
       is_termination_msg: fn msg -> String.contains?(msg.content, "TERMINATE") end
     }
 
-    code_writer_agent = %XAgent{
+    code_writer_agent = %Autogen.Agent{
       name: "code_writer_agent",
       system_prompt: ~S"""
       You are a helpful AI assistant.
@@ -80,7 +80,7 @@ The conceptual architecture of autogen is explained in [this blog post by Chi Wa
       type: :conversable_agent
     }
 
-    XAgent.initiate_chat(
+    Autogen.Agent.initiate_chat(
       from_agent: code_executor_agent,
       to_agent: code_writer_agent,
       message: "Write Elixir code to calculate the 14th Fibonacci number."

@@ -1,4 +1,4 @@
-defmodule XUtils do
+defmodule Autogen.Utils do
   def get_confirmation(prompt \\ "Are you sure? (yes/no): ") do
     do_get_confirmation(prompt)
   end

@@ -56,14 +56,14 @@ defmodule LLMRequest do
   end
 end
 
-defmodule XTool do
+defmodule Autogen.Tool do
   defstruct name: "", description: "", jsonschema: ""
 end
 
-defmodule XMessage do
+defmodule Autogen.Message do
   defstruct content: "", sender: "", receiver: ""
 end
 
-defmodule XThread do
+defmodule Autogen.Thread do
   defstruct max_turns: nil, chat_history: []
 end
