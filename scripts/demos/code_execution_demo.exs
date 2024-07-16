@@ -5,7 +5,7 @@ code_executor_agent = %Autogen.Agent{
   type: :conversable_agent,
   code_execution_config: true,
   human_input_mode: :always,
-  is_termination_msg: fn msg -> String.contains?(msg.content, "TERMINATE") end
+  is_termination_msg: fn msg -> String.contains?(msg, "TERMINATE") end
 }
 
 code_writer_agent = %Autogen.Agent{

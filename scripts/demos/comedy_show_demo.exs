@@ -7,7 +7,7 @@ joe = %Autogen.Agent{
   llm: %{temperature: 0.9},
   human_input_mode: "NEVER",
   max_consecutive_auto_reply: 1,
-  is_termination_msg: fn msg -> String.contains?(String.downcase(msg.content), "bye") end
+  is_termination_msg: fn msg -> String.contains?(String.downcase(msg), "bye") end
 }
 
 cathy = %Autogen.Agent{

@@ -15,11 +15,11 @@ defmodule Autogen.Agent do
     default_auto_reply: "",
     description: nil,
     chat_messages: nil,
-    model: "llama3"
+    chain: %{llm: LangChain.ChatModels.ChatOllamaAI.new!(%{model: "llama3"})}
 
 
   def initiate_chat(opts \\ []) do
-    # This wraps the message in XMessage and sends it as XThread
+    # This wraps the message in AutoGen.Thread before sending it.
     # Reset the consecutive auto reply counter.
     # If `clear_history` is True, the chat history with the recipient agent will be cleared.
     %{
@@ -32,10 +32,10 @@ defmodule Autogen.Agent do
     thread = %Autogen.Thread{
       max_turns: max_turns,
       chat_history: [
-        %Autogen.Message{
+        %LangChain.Message{
+          role: :assistant,
           content: message,
-          sender: from_agent.name,
-          receiver: to_agent.name
+          name: from_agent.name
         }
       ]
     }
@@ -52,55 +52,77 @@ defmodule Autogen.Agent do
     receive_thread(from_agent, to_agent, thread)
   end
 
-  def receive_thread(from_agent, to_agent, thread) do
-    message = List.first(thread.chat_history)
-    IO.puts "#{from_agent.name} (to #{to_agent.name}):"
-    IO.puts message.content
-    IO.puts "--------------------------------------------------------------------------------"
+  def receive_thread(%Autogen.Agent{} = from_agent, %Autogen.Agent{} = to_agent, %Autogen.Thread{} = thread) do
+    message = List.last(thread.chat_history)
+    IO.puts("#{from_agent.name} (to #{to_agent.name}):")
+    # IO.puts("received latest message: #{inspect(message)}")
+    IO.puts(message.content)
+    IO.puts("--------------------------------------------------------------------------------")
 
     if !(err = should_stop_replying?(thread, message, to_agent)) do
       reply_str = generate_reply(to_agent, thread)
-      reply_msg = %Autogen.Message{content: reply_str, sender: to_agent.name, receiver: from_agent.name}
-      send_thread(to_agent, from_agent, %Autogen.Thread{thread | chat_history: [reply_msg | thread.chat_history]})
+      reply_msg = %LangChain.Message{
+        content: reply_str,
+        name: to_agent.name,
+        role: :user
+      }
+      send_thread(to_agent, from_agent, %Autogen.Thread{
+        thread
+        | chat_history: (thread.chat_history ++ [reply_msg])
+      })
     else
-      IO.puts "\n\n#{err}"
+      IO.puts("\n\n#{err}")
     end
   end
 
-  def should_stop_replying?(thread, message, to_agent) do
+  def should_stop_replying?(
+      %Autogen.Thread{chat_history: chat_history} = thread,
+      %LangChain.Message{content: content} = _message,
+      %Autogen.Agent{} = to_agent
+    ) do
     # TODO: Handle max_consecutive_auto_reply
     cond do
-      thread.max_turns != nil and length(thread.chat_history) == 2 * thread.max_turns -> "Max turns reached"
-      to_agent.type == :conversable_agent and to_agent.is_termination_msg != nil and to_agent.is_termination_msg.(message) -> "is_termination_msg matched"
+      thread.max_turns != nil and length(chat_history) == 2 * thread.max_turns ->
+        "Max turns reached"
+
+        to_agent.type == :conversable_agent and to_agent.is_termination_msg != nil and
+            to_agent.is_termination_msg.(content) ->
+          "is_termination_msg matched"
+
       true -> false
     end
   end
 
-  def generate_reply(agent, thread) when (agent.type == :conversable_agent or agent.type == :assistant_agent) and agent.code_execution_config == false do
-    # Assemble message history correctly for the LLM
-    # Our thread is sorted in reverse chronological order.
-    # And we need to ask the LLM to behave like us (role=assistant), and we will play other agents' role (role=user)
+  def generate_reply(%Autogen.Agent{} = agent, %Autogen.Thread{} = thread)
+    when (agent.type == :conversable_agent or agent.type == :assistant_agent) and
+      agent.code_execution_config == false do
 
-    # So we reverse thread.chat_history and assign roles accordingly.
+    # We need to assemble the message history correctly before calling LLM
+    # We are going to ask the LLM to behave like us (role=assistant), and we will play other agents' role (role=user)
     # if message.sender is our name, set role to assistant, else set role to user.
 
-    messages = Enum.reverse(thread.chat_history)
-    |> Enum.map(fn msg -> %{role: (if msg.sender == agent.name, do: "assistant", else: "user"), content: msg.content} end)
+    sys_msg = %LangChain.Message{role: :system, content: agent.system_message, name: "system"}
+    messages = thread.chat_history
+      |> Enum.map(fn msg -> %LangChain.Message{
+          role: (if msg.name == agent.name, do: :assistant, else: :user),
+          content: msg.content,
+          name: msg.name
+        } end)
 
-    llm_messages = [%{role: "system", content: agent.system_message} | messages]
+    # IO.puts("Sending to LLM: #{inspect(messages)}")
 
-    # IO.puts "Sending to LLM: #{inspect(llm_messages)}"
-
-    {:ok, %{choices: [%{"message" => %{"content" => response}}]}} = LLMRequest.dispatch(
-      %LLMRequest{
-        messages: llm_messages,
-      } |> maybe_put(:temperature, safe_get(agent.llm, :temperature))
-      |> maybe_put(:model, agent.model)
-    )
-    response
+    {:ok, _updated_chain, response} =
+      agent.chain
+      |> LangChain.Chains.LLMChain.new!()
+      |> LangChain.Chains.LLMChain.add_messages([sys_msg] ++ messages)
+      |> LangChain.Chains.LLMChain.run()
+      # |> IO.inspect()
+    response.content
   end
 
-  def generate_reply(agent, thread) when (agent.type == :conversable_agent or agent.type == :assistant_agent) and is_map(agent.code_execution_config) do
+  def generate_reply(%Autogen.Agent{} = agent, %Autogen.Thread{} = thread)
+    when (agent.type == :conversable_agent or agent.type == :assistant_agent) and is_map(agent.code_execution_config) do
+
     message = List.first(thread.chat_history)
     code = message.content
     |> String.split("```elixir")
@@ -118,8 +140,8 @@ defmodule Autogen.Agent do
     String.trim(IO.gets("Your response: "))
   end
 
-  defp maybe_put(map, _key, nil), do: map
-  defp maybe_put(map, key, value), do: Map.put(map, key, value)
-  defp safe_get(nil, _key), do: nil
-  defp safe_get(map, key), do: Map.get(map, key)
+  # defp maybe_put(map, _key, nil), do: map
+  # defp maybe_put(map, key, value), do: Map.put(map, key, value)
+  # defp safe_get(nil, _key), do: nil
+  # defp safe_get(map, key), do: Map.get(map, key)
 end

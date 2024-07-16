@@ -11,4 +11,8 @@ user = %Autogen.Agent{
   type: :user_proxy_agent
 }
 
-Autogen.Agent.initiate_chat(from_agent: assistant, to_agent: user, message: "How can I help you today?")
+Autogen.Agent.initiate_chat(
+  from_agent: assistant,
+  to_agent: user,
+  message: "How can I help you today?"
+)

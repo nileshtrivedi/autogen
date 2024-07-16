@@ -36,8 +36,7 @@ defmodule Autogen do
       system_message: basic_system_message,
       description: basic_description,
       code_execution_config: false,
-      human_input_mode: "NEVER",
-      model: "llama3"
+      human_input_mode: "NEVER"
     }
   end
 end

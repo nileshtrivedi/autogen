@@ -4,8 +4,10 @@ assistant = Autogen.create_basic_assistant()
 
 thread = %Autogen.Thread{
   chat_history: [
-    %Autogen.Message{
-      content: "what is the factorial of 7?"
+    %LangChain.Message{
+      content: "what is the factorial of 7?",
+      name: "basicbot",
+      role: :user
     }
   ]
 }
