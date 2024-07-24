@@ -6,7 +6,7 @@ defmodule Autogen.MixProject do
       app: :autogen,
       description: "Elixir port of Microsoft's multi-agent AI framework Autogen",
       package: package(),
-      version: "0.2.0",
+      version: "0.3.0",
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
       deps: deps(),

@@ -5,7 +5,7 @@ This is a work-in-progress Elixir port for Microsoft's agent framework: [Autogen
 An important goal of this library is to stay as close as possible to Microsoft's Python-based implementation of Autogen (for eg: class names/field names etc). This will make it possible to support feature like [AutoBuild](https://microsoft.github.io/autogen/blog/2023/11/26/Agent-AutoBuild) where entire agent group/library can be saved to a JSON file and loaded later. There are many other tools in the Autogen ecosystem. For example, [AutoGen Studio](https://microsoft.github.io/autogen/blog/2023/12/01/AutoGenStudio) (a web app to configure and test agents), [AutoGen Bench](https://microsoft.github.io/autogen/blog/2024/01/25/AutoGenBench) (for agent evaluations).
 
 This is highly experimental and not at all ready for use in production.
-This makes use of langchain to make calls to various LLMs in a generic way. Ollama's Llama3 is used as the default LLM.
+This makes use of [langchain](https://github.com/brainlid/langchain) to make calls to various LLMs in a generic way. [Ollama](https://ollama.com/)'s Llama3 is used as the default LLM.
 
 The conceptual architecture of autogen is explained in [this blog post by Chi Wang](https://microsoft.github.io/autogen/blog/2024/05/24/Agent).
 
@@ -20,7 +20,7 @@ The conceptual architecture of autogen is explained in [this blog post by Chi Wa
 
 - Enable streaming responses
 - Turn agents into Erlang processes
-- Build a comprehensive library of prompts, tools and agents to make common use-cases trivial
+- Build a comprehensive [library](https://microsoft.github.io/autogen/docs/Examples) of prompts, tools and [agents](https://microsoft.github.io/autogen/docs/notebooks) to make common use-cases trivial
 - Handle real-time multi-modal input (images, audio, video, files)
 - Reach capability at par with OpenAI's GPT-4o demos
 
@@ -106,7 +106,7 @@ The package can be installed by adding it to your list of dependencies in `mix.e
 
 ```
 def deps do
-  [{:autogen, "~> 0.2.0"}]
+  [{:autogen, "~> 0.3.0"}]
 end
 ```
 
