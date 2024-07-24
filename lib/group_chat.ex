@@ -30,27 +30,29 @@ defmodule Autogen.GroupChat do
   Respond with ONLY the name of the speaker and DO NOT provide a reason.
   """
 
-  defstruct agents: [], messages: [], max_round: 10, admin_name: "Admin",
-    func_call_filter: true,
-    speaker_selection_method: "AUTO", # AUTO, RANDOM, MANUAL, ROUND_ROBIN
-    max_retries_for_selecting_speaker: 2,
-    allow_repeat_speaker: nil,
-    allowed_or_disallowed_speaker_transitions: nil,
-    speaker_transition_types: nil,
-    enable_clear_history: false,
-    send_introductions: false,
-    select_speaker_message_template: @select_speaker_message_template,
-    select_speaker_prompt_template: @select_speaker_prompt_template,
-    select_speaker_auto_multiple_template: @select_speaker_auto_multiple_template,
-    select_speaker_auto_none_template: @select_speaker_auto_none_template,
-    select_speaker_auto_verbose: false,
-    role_for_select_speaker_messages: "system"
+  defstruct agents: [],
+            messages: [],
+            max_round: 10,
+            admin_name: "Admin",
+            func_call_filter: true,
+            # AUTO, RANDOM, MANUAL, ROUND_ROBIN
+            speaker_selection_method: "AUTO",
+            max_retries_for_selecting_speaker: 2,
+            allow_repeat_speaker: nil,
+            allowed_or_disallowed_speaker_transitions: nil,
+            speaker_transition_types: nil,
+            enable_clear_history: false,
+            send_introductions: false,
+            select_speaker_message_template: @select_speaker_message_template,
+            select_speaker_prompt_template: @select_speaker_prompt_template,
+            select_speaker_auto_multiple_template: @select_speaker_auto_multiple_template,
+            select_speaker_auto_none_template: @select_speaker_auto_none_template,
+            select_speaker_auto_verbose: false,
+            role_for_select_speaker_messages: "system"
 
   def next_agent() do
-
   end
 
   def random_select_speaker() do
-
   end
 end

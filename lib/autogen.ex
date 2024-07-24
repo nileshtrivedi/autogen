@@ -14,7 +14,8 @@ defmodule Autogen do
     Reply "TERMINATE" in the end when everything is done.
     """
 
-    default_description = "A helpful and general-purpose AI assistant that has strong language skills, Python skills, and Linux command line skills."
+    default_description =
+      "A helpful and general-purpose AI assistant that has strong language skills, Python skills, and Linux command line skills."
 
     %Autogen.Agent{
       name: "assistant",
