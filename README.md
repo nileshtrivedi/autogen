@@ -1,6 +1,6 @@
 # Autogen
 
-This is a work-in-progress Elixir port for Microsoft's agent framework: [Autogen](https://microsoft.github.io/autogen/). 
+This is a work-in-progress Elixir port for Microsoft's agent framework: [Autogen](https://microsoft.github.io/autogen/).
 
 An important goal of this library is to stay as close as possible to Microsoft's Python-based implementation of Autogen (for eg: class names/field names etc). This will make it possible to support feature like [AutoBuild](https://microsoft.github.io/autogen/blog/2023/11/26/Agent-AutoBuild) where entire agent group/library can be saved to a JSON file and loaded later. There are many other tools in the Autogen ecosystem. For example, [AutoGen Studio](https://microsoft.github.io/autogen/blog/2023/12/01/AutoGenStudio) (a web app to configure and test agents), [AutoGen Bench](https://microsoft.github.io/autogen/blog/2024/01/25/AutoGenBench) (for agent evaluations).
 
@@ -117,4 +117,9 @@ mix run scripts/demos/basic.exs
 mix run scripts/demos/code_execution_demo.exs
 mix run scripts/demos/assistant_demo.exs
 mix run scripts/demos/comedy_show_demo.exs
+```
+
+For a simple chat UI using [PhoenixPlayground](https://github.com/phoenix-playground/phoenix_playground) and [DeepChat](https://deepchat.dev/):
+```bash
+iex scripts/demos/web_chat_ui.exs
 ```
