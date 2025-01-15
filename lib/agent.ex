@@ -17,7 +17,7 @@ defmodule Autogen.Agent do
             default_auto_reply: "",
             description: nil,
             chat_messages: nil,
-            chain: %{llm: LangChain.ChatModels.ChatOllamaAI.new!(%{model: "llama3"})}
+            chain: %{llm: LangChain.ChatModels.ChatOllamaAI.new!(%{model: "llama3.2"})}
 
   def initiate_chat(opts \\ []) do
     # This wraps the message in AutoGen.Thread before sending it.
@@ -122,14 +122,14 @@ defmodule Autogen.Agent do
 
     # IO.puts("Sending to LLM: #{inspect(messages)}")
 
-    {:ok, _updated_chain, response} =
+    {:ok, updated_chain} =
       agent.chain
       |> LangChain.Chains.LLMChain.new!()
       |> LangChain.Chains.LLMChain.add_messages([sys_msg] ++ messages)
       |> LangChain.Chains.LLMChain.run()
 
     # |> IO.inspect()
-    response.content
+    updated_chain.last_message.content
   end
 
   def generate_reply(%Autogen.Agent{} = agent, %Autogen.Thread{} = thread)
